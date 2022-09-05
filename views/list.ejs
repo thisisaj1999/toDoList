@@ -17,6 +17,7 @@
       />
       <p><%= data.name %></p>
     </div>
+    <input type="hidden" name="listName" value="<%=listTitle%>" />
   </form>
 
   <%})%>
@@ -28,7 +29,7 @@
       placeholder="New Item"
       autocomplete="off"
     />
-    <button type="submit" name="list">+</button>
+    <button type="submit" name="list" value="<%=listTitle%>">+</button>
   </form>
 </div>
 

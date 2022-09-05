@@ -2,8 +2,8 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
-
 const mongoose = require('mongoose');
+const _ = require('lodash');
 
 const app = express();
 
@@ -61,7 +61,7 @@ app.get('/', function (req, res) {
 });
 
 app.get('/:customListName', (req, res) => {
-  const customListName = req.params.customListName;
+  const customListName = _.capitalize(req.params.customListName);
 
   List.findOne({ name: customListName }, (err, foundList) => {
     if (!err) {
@@ -82,20 +82,26 @@ app.get('/:customListName', (req, res) => {
       }
     }
   });
-
-  // if (List.find({ name: customListName })) {
-  //   console.log('List already exist...');
-  // } else {
-
-  // }
 });
 
 app.post('/', function (req, res) {
   const itemName = req.body.newItem;
+  const listName = req.body.list;
 
   const item = new Item({
     name: itemName,
   });
+
+  if (listName === 'Today') {
+    item.save();
+    res.redirect('/');
+  } else {
+    List.findOne({ name: listName }, (err, foundList) => {
+      foundList.items.push(item);
+      foundList.save();
+      res.redirect('/' + listName);
+    });
+  }
 
   item.save();
 
@@ -104,15 +110,26 @@ app.post('/', function (req, res) {
 
 app.post('/delete', (req, res) => {
   const checkedItemId = req.body.checkbox;
+  const listName = req.body.listName;
 
-  Item.findByIdAndRemove(checkedItemId, (err) => {
-    if (!err) {
-      console.log('Successfully deleted the checked item.');
-      res.redirect('/');
-    } else {
-      console.log(err);
-    }
-  });
+  if (listName === 'Today') {
+    Item.findByIdAndRemove(checkedItemId, (err) => {
+      if (!err) {
+        console.log('Successfully deleted the checked item.');
+        res.redirect('/');
+      }
+    });
+  } else {
+    List.findOneAndUpdate(
+      { name: listName },
+      { $pull: { items: { _id: checkedItemId } } },
+      (err, foundList) => {
+        if (!err) {
+          res.redirect('/' + listName);
+        }
+      }
+    );
+  }
 });
 
 app.get('/about', function (req, res) {
