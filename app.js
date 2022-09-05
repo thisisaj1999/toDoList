@@ -36,13 +36,12 @@ const item3 = new Item({
 
 const defaultItems = [item1, item2, item3];
 
-// const items = Item.find({}, (err, results) => {
-//   if (err) {
-//     console.log(err);
-//   } else {
-//     console.log(results);
-//   }
-// });
+const listSchema = {
+  name: String,
+  items: [itemsSchema],
+};
+
+const List = mongoose.model('List', listSchema);
 
 app.get('/', function (req, res) {
   Item.find({}, (err, foundItems) => {
@@ -59,6 +58,36 @@ app.get('/', function (req, res) {
       res.render('list', { listTitle: 'Today', newListItems: foundItems });
     }
   });
+});
+
+app.get('/:customListName', (req, res) => {
+  const customListName = req.params.customListName;
+
+  List.findOne({ name: customListName }, (err, foundList) => {
+    if (!err) {
+      if (!foundList) {
+        // Create a new list
+        const list = new List({
+          name: customListName,
+          items: defaultItems,
+        });
+
+        list.save();
+        res.redirect('/' + customListName);
+      } else {
+        res.render('list', {
+          listTitle: foundList.name,
+          newListItems: foundList.items,
+        });
+      }
+    }
+  });
+
+  // if (List.find({ name: customListName })) {
+  //   console.log('List already exist...');
+  // } else {
+
+  // }
 });
 
 app.post('/', function (req, res) {
@@ -84,10 +113,6 @@ app.post('/delete', (req, res) => {
       console.log(err);
     }
   });
-});
-
-app.get('/work', function (req, res) {
-  res.render('list', { listTitle: 'Work List', newListItems: workItems });
 });
 
 app.get('/about', function (req, res) {
