@@ -2,4 +2,4 @@
 
 Project Created while learning EJS.
 
-Anjla Yu - Web Dev Course
+Angela Yu - Web Dev Course
